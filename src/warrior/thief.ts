@@ -1,6 +1,6 @@
 import { Warrior } from './warrior';
 const HEALTH_RANGE = [60, 90];
-const POWER_RANGE = [80, 100];
+const POWER_RANGE = [80, 90];
 const ARMOR_RANGE = [20, 30];
 
 const health =

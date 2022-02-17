@@ -52,7 +52,13 @@ export class AppService {
       }
     }
   };
-
+  calculateDeathCap = (army1Length: number, army2Length: number): number => {
+    if (army1Length > army2Length) {
+      return army2Length - 1;
+    } else {
+      return army1Length - 1;
+    }
+  };
   // main function with all the battle logic
   async calculateBattle(army1num: number, army2num: number): Promise<string[]> {
     const firstArmy = await this.armyCalculator(army1num);
@@ -79,7 +85,12 @@ export class AppService {
             Math.floor(
               Math.random() * (DISASTER_RANGE[0] - DISASTER_RANGE[1] + 1),
             ) + DISASTER_RANGE[1];
-          const peopleKilled = Math.floor(Math.random() * (1 - 20 + 1)) + 20;
+          const upperDeathCap = this.calculateDeathCap(
+            smallArmy.length,
+            bigArmy.length,
+          );
+          const peopleKilled =
+            Math.floor(Math.random() * (1 - upperDeathCap + 1)) + upperDeathCap;
           const disaster = this.generateDisaster(indexSmall, disasterModulo);
 
           const attackOrder = Math.random();
@@ -103,7 +114,7 @@ export class AppService {
                 bigArmy.splice(indexBig, 1);
                 diedOfCombat += 1;
                 battleLog.push(
-                  `${element1.type} of the bigger army died in combat. Bigger army has ${bigArmy.length} warriors left`,
+                  `${element1.type} of the bigger army was killed in combat by a ${element.type} of the smaller army. Bigger army has ${bigArmy.length} warriors left`,
                 );
               }
             }
@@ -125,7 +136,7 @@ export class AppService {
               if (isDead) {
                 smallArmy.splice(indexSmall, 1);
                 battleLog.push(
-                  `A ${element.type} of the smaller army died in combat. Smaller army has ${smallArmy.length} warriors left`,
+                  `A ${element.type} of the smaller army was killed in combat by a ${element1.type} of the bigger army. Smaller army has ${smallArmy.length} warriors left`,
                 );
                 diedOfCombat += 1;
               }
