@@ -62,7 +62,7 @@ export class AppService {
       firstArmy.length > secondArmy.length ? secondArmy : firstArmy;
     const bigArmy =
       firstArmy.length > secondArmy.length ? firstArmy : secondArmy;
-    console.log(smallArmy);
+
     const battleLog: string[] = [];
     let diedOfDisaster = 0;
     let diedOfCombat = 0;
