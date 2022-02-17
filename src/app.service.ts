@@ -12,11 +12,7 @@ const DISASTER_CHANCE = 0.5;
 
 @Injectable()
 export class AppService {
-  constructor(
-    private thief: Thief,
-    private wizard: Wizard,
-    private knight: Knight,
-  ) {}
+  // constructor() {}
 
   // function that returns the battle report
   async getBattle(army1: number, army2: number): Promise<string[]> {
@@ -29,19 +25,22 @@ export class AppService {
     const army: Warrior[] = [];
     for (let index = 0; index < armyLength; index++) {
       const chance = Math.random();
+      const wizard = new Wizard();
+      const knight = new Knight();
+      const thief = new Thief();
       if (chance <= WIZARD_CHANCE) {
-        army.push(this.wizard);
+        army.push(wizard);
       } else if (chance > WIZARD_CHANCE && chance <= THIEF_CHANCE) {
-        army.push(this.thief);
+        army.push(thief);
       } else if (chance > THIEF_CHANCE) {
-        army.push(this.knight);
+        army.push(knight);
       }
     }
     return army;
   }
   // function that generates a disaster every 5 rounds
   generateDisaster = (index: number): number => {
-    if (index % 5 === 0) {
+    if (index % 7 === 0) {
       const diseaseChance = Math.random();
       if (diseaseChance > DISASTER_CHANCE) {
         return 1;
@@ -55,6 +54,7 @@ export class AppService {
 
   // main function with all the battle logic
   async calculateBattle(army1num: number, army2num: number): Promise<string[]> {
+    console.log('engaged');
     const firstArmy = await this.armyCalculator(army1num);
     const secondArmy = await this.armyCalculator(army2num);
 
@@ -63,16 +63,22 @@ export class AppService {
     const bigArmy =
       firstArmy.length > secondArmy.length ? firstArmy : secondArmy;
     const battleLog: string[] = [];
-
-    while (smallArmy.length !== 0 || bigArmy.length !== 0) {
+    let diedOfDisaster = 0;
+    let diedOfCombat = 0;
+    console.log(bigArmy.length);
+    console.log(smallArmy.length);
+    bigArmy.slice(1, 5);
+    smallArmy.slice(3, 6);
+    console.log(bigArmy.length);
+    console.log(smallArmy.length);
+    while (smallArmy.length !== 0 && bigArmy.length !== 0) {
       for (let indexBig = 0; indexBig < bigArmy.length; indexBig++) {
         const element1 = bigArmy[indexBig];
 
         for (let indexSmall = 0; indexSmall < smallArmy.length; indexSmall++) {
           const peopleKilled = Math.floor(Math.random() * (1 - 5 + 1)) + 5;
           const disaster = this.generateDisaster(indexSmall);
-          let diedOfDisaster = 0;
-          let diedOfCombat = 0;
+
           const attackOrder = Math.random();
           const element = smallArmy[indexSmall];
           if (attackOrder > 0.5) {
@@ -116,7 +122,7 @@ export class AppService {
               }
             }
           }
-          if (indexSmall % 5 === 0) {
+          if (indexSmall % 15 === 0) {
             battleLog.push(
               `Battle status after ${indexSmall} attacks: 
               -The bigger army has ${bigArmy.length} warriors left. 
