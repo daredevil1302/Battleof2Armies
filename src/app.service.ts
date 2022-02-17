@@ -9,7 +9,7 @@ import { Injectable } from '@nestjs/common';
 const WIZARD_CHANCE = 0.33;
 const THIEF_CHANCE = 0.66;
 const DISASTER_CHANCE = 0.5;
-
+const DISASTER_RANGE = [7, 11];
 @Injectable()
 export class AppService {
   // constructor() {}
@@ -42,8 +42,8 @@ export class AppService {
   // function that generates a disaster every 5 rounds
   generateDisaster = (index: number, disasterModulo: number): number => {
     if ((index + 1) % disasterModulo === 0) {
-      const diseaseChance = Math.random();
-      if (diseaseChance > DISASTER_CHANCE) {
+      const disasterChance = Math.random();
+      if (disasterChance > DISASTER_CHANCE) {
         return 1;
         //1 signifies an earthquake
       } else {
@@ -75,7 +75,10 @@ export class AppService {
         const element1 = bigArmy[indexBig];
 
         for (let indexSmall = 0; indexSmall < smallArmy.length; indexSmall++) {
-          const disasterModulo = Math.floor(Math.random() * (1 - 20 + 1)) + 20;
+          const disasterModulo =
+            Math.floor(
+              Math.random() * (DISASTER_RANGE[0] - DISASTER_RANGE[1] + 1),
+            ) + DISASTER_RANGE[1];
           const peopleKilled = Math.floor(Math.random() * (1 - 20 + 1)) + 20;
           const disaster = this.generateDisaster(indexSmall, disasterModulo);
 

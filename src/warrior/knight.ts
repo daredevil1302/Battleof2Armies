@@ -2,7 +2,7 @@ import { Warrior } from './warrior';
 
 const HEALTH_RANGE = [110, 130];
 const POWER_RANGE = [20, 40];
-const ARMOR_RANGE = [50, 70];
+const ARMOR_RANGE = [60, 80];
 
 const health =
   Math.floor(Math.random() * (HEALTH_RANGE[0] - HEALTH_RANGE[1] + 1)) +
