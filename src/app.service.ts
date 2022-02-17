@@ -25,6 +25,7 @@ export class AppService {
     const army: Warrior[] = [];
     for (let index = 0; index < armyLength; index++) {
       const chance = Math.random();
+
       const wizard = new Wizard();
       const knight = new Knight();
       const thief = new Thief();
@@ -39,8 +40,8 @@ export class AppService {
     return army;
   }
   // function that generates a disaster every 5 rounds
-  generateDisaster = (index: number): number => {
-    if (index % 5 === 0) {
+  generateDisaster = (index: number, disasterModulo: number): number => {
+    if ((index + 1) % disasterModulo === 0) {
       const diseaseChance = Math.random();
       if (diseaseChance > DISASTER_CHANCE) {
         return 1;
@@ -54,7 +55,6 @@ export class AppService {
 
   // main function with all the battle logic
   async calculateBattle(army1num: number, army2num: number): Promise<string[]> {
-    console.log('engaged');
     const firstArmy = await this.armyCalculator(army1num);
     const secondArmy = await this.armyCalculator(army2num);
 
@@ -62,17 +62,22 @@ export class AppService {
       firstArmy.length > secondArmy.length ? secondArmy : firstArmy;
     const bigArmy =
       firstArmy.length > secondArmy.length ? firstArmy : secondArmy;
+    console.log(smallArmy);
     const battleLog: string[] = [];
     let diedOfDisaster = 0;
     let diedOfCombat = 0;
-
+    let round = 1;
+    battleLog.push(
+      `The battle has begun! Bigger army has ${bigArmy.length} warriors. Smaller army has ${smallArmy.length} warriors`,
+    );
     while (smallArmy.length !== 0 && bigArmy.length !== 0) {
       for (let indexBig = 0; indexBig < bigArmy.length; indexBig++) {
         const element1 = bigArmy[indexBig];
 
         for (let indexSmall = 0; indexSmall < smallArmy.length; indexSmall++) {
-          const peopleKilled = Math.floor(Math.random() * (1 - 5 + 1)) + 5;
-          const disaster = this.generateDisaster(indexSmall);
+          const disasterModulo = Math.floor(Math.random() * (1 - 20 + 1)) + 20;
+          const peopleKilled = Math.floor(Math.random() * (1 - 20 + 1)) + 20;
+          const disaster = this.generateDisaster(indexSmall, disasterModulo);
 
           const attackOrder = Math.random();
           const element = smallArmy[indexSmall];
@@ -80,13 +85,13 @@ export class AppService {
             if (disaster === 1) {
               bigArmy.splice(indexBig, peopleKilled);
               battleLog.push(
-                `A disaster happened in round ${indexSmall}! An earthquake hit the bigger army. ${peopleKilled} were killed`,
+                `A disaster happened! An earthquake hit the bigger army. ${peopleKilled} were killed. Bigger army has ${bigArmy.length} warriors left`,
               );
               diedOfDisaster += peopleKilled;
             } else if (disaster === 2) {
               bigArmy.splice(indexBig, peopleKilled);
               battleLog.push(
-                `A disaster happened in round ${indexSmall}! A disease struck the bigger army. ${peopleKilled} were killed`,
+                `A disaster happened! A disease struck the bigger army. ${peopleKilled} were killed. Bigger army has ${bigArmy.length} warriors left`,
               );
               diedOfDisaster += peopleKilled;
             } else {
@@ -94,42 +99,59 @@ export class AppService {
               if (isDead) {
                 bigArmy.splice(indexBig, 1);
                 diedOfCombat += 1;
+                battleLog.push(
+                  `${element1.type} of the bigger army died in combat. Bigger army has ${bigArmy.length} warriors left`,
+                );
               }
             }
           } else {
             if (disaster === 1) {
               smallArmy.splice(indexSmall, peopleKilled);
               battleLog.push(
-                `A disaster happened in round ${indexSmall}! An earthquake hit the smaller army. ${peopleKilled} were killed`,
+                `A disaster happened! An earthquake hit the smaller army. ${peopleKilled} were killed. Smaller army has ${smallArmy.length} warriors left`,
               );
               diedOfDisaster += peopleKilled;
             } else if (disaster === 2) {
               smallArmy.splice(indexSmall, peopleKilled);
               battleLog.push(
-                `A disaster happened in round ${indexSmall}! A disease struck the smaller army. ${peopleKilled} were killed`,
+                `A disaster happened! A disease struck the smaller army. ${peopleKilled} were killed. Smaller army has ${smallArmy.length} warriors left`,
               );
               diedOfDisaster += peopleKilled;
             } else {
               const isDead = element1.attack(element);
               if (isDead) {
                 smallArmy.splice(indexSmall, 1);
+                battleLog.push(
+                  `A ${element.type} of the smaller army died in combat. Smaller army has ${smallArmy.length} warriors left`,
+                );
                 diedOfCombat += 1;
               }
             }
           }
-          if (indexSmall % 15 === 0) {
-            battleLog.push(
-              `Battle status after ${indexSmall} attacks: The bigger army has ${bigArmy.length} warriors left. The smaller army has ${smallArmy.length} left. ${diedOfCombat} warriors died in single combat on both sides. ${diedOfDisaster} warriors died of disasters (earthquakes and diseases) on both sides`,
-            );
-          }
+
           if (bigArmy.length === 0 || smallArmy.length === 0) {
             battleLog.push(
-              `The battle has ended! ${
+              `The battle has ended after ${round} rounds of fighting ${
                 bigArmy.length === 0
                   ? `The smaller army won with ${smallArmy.length} warriors left`
                   : `The bigger army won with ${bigArmy.length} warriors left`
               } `,
             );
+            break;
+          }
+          if (indexSmall === smallArmy.length - 1) {
+            battleLog.push(
+              `Battle status at the end of round ${round}: Bigger army has ${
+                bigArmy.length
+              } warriors left. Smaller army has ${
+                smallArmy.length
+              } warriors left. Warriors that died this round ${
+                diedOfCombat + diedOfDisaster
+              }`,
+            );
+            diedOfCombat = 0;
+            diedOfDisaster = 0;
+            round += 1;
           }
         }
       }

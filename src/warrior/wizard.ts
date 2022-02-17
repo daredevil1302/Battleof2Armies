@@ -2,7 +2,7 @@ import { Warrior } from './warrior';
 
 const HEALTH_RANGE = [80, 100];
 const POWER_RANGE = [60, 80];
-const ARMOR_RANGE = [20, 40];
+const ARMOR_RANGE = [30, 50];
 
 const health =
   Math.floor(Math.random() * (HEALTH_RANGE[0] - HEALTH_RANGE[1] + 1)) +
@@ -13,9 +13,9 @@ const power =
 const armor =
   Math.floor(Math.random() * (ARMOR_RANGE[0] - ARMOR_RANGE[1] + 1)) +
   ARMOR_RANGE[1];
-//randomizirati sve atribute
+const type = 'Wizard';
 export class Wizard extends Warrior {
   constructor() {
-    super(health, power, armor);
+    super(health, power, armor, type);
   }
 }

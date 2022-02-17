@@ -1,7 +1,7 @@
 import { Warrior } from './warrior';
-const HEALTH_RANGE = [40, 60];
+const HEALTH_RANGE = [60, 90];
 const POWER_RANGE = [80, 100];
-const ARMOR_RANGE = [10, 20];
+const ARMOR_RANGE = [20, 30];
 
 const health =
   Math.floor(Math.random() * (HEALTH_RANGE[0] - HEALTH_RANGE[1] + 1)) +
@@ -12,9 +12,9 @@ const power =
 const armor =
   Math.floor(Math.random() * (ARMOR_RANGE[0] - ARMOR_RANGE[1] + 1)) +
   ARMOR_RANGE[1];
-
+const type = 'Thief';
 export class Thief extends Warrior {
   constructor() {
-    super(health, power, armor);
+    super(health, power, armor, type);
   }
 }
