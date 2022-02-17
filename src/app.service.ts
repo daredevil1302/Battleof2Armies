@@ -157,5 +157,6 @@ export class AppService {
       }
     }
     return battleLog;
+    //an array with the logs of battle
   }
 }
