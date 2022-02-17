@@ -61,6 +61,79 @@ export class AppService {
     }
   };
 
+  //function that describes what happens when a warrior from small army attacks
+  smallArmyAttacker = (
+    smallArmyWarrior: Warrior,
+    bigArmyWarrior: Warrior,
+    disaster: number,
+    bigArmy: Warrior[],
+    indexBig: number,
+    battleLog: string[],
+    peopleKilled: number,
+  ): number => {
+    let diedOfCombat = 0;
+    let diedOfDisaster = 0;
+    if (disaster === 1) {
+      bigArmy.splice(indexBig, peopleKilled);
+      battleLog.push(
+        `A disaster happened! An earthquake hit the bigger army. ${peopleKilled} were killed. Bigger army has ${bigArmy.length} warriors left`,
+      );
+      diedOfDisaster += peopleKilled;
+    } else if (disaster === 2) {
+      bigArmy.splice(indexBig, peopleKilled);
+      battleLog.push(
+        `A disaster happened! A disease struck the bigger army. ${peopleKilled} were killed. Bigger army has ${bigArmy.length} warriors left`,
+      );
+      diedOfDisaster += peopleKilled;
+    } else {
+      const isDead = smallArmyWarrior.attack(bigArmyWarrior);
+      if (isDead) {
+        bigArmy.splice(indexBig, 1);
+        diedOfCombat += 1;
+        battleLog.push(
+          `${bigArmyWarrior.type} of the bigger army was killed in combat by a ${smallArmyWarrior.type} of the smaller army. Bigger army has ${bigArmy.length} warriors left`,
+        );
+      }
+    }
+    return diedOfCombat + diedOfDisaster;
+  };
+  // function that describes what happens when a warrior from big army attacks
+  bigArmyAttacker = (
+    smallArmyWarrior: Warrior,
+    bigArmyWarrior: Warrior,
+    disaster: number,
+    smallArmy: Warrior[],
+    indexSmall: number,
+    battleLog: string[],
+    peopleKilled: number,
+  ): number => {
+    let diedOfCombat = 0;
+    let diedOfDisaster = 0;
+    if (disaster === 1) {
+      smallArmy.splice(indexSmall, peopleKilled);
+      battleLog.push(
+        `A disaster happened! An earthquake hit the smaller army. ${peopleKilled} were killed. Smaller army has ${smallArmy.length} warriors left`,
+      );
+      diedOfDisaster += peopleKilled;
+    } else if (disaster === 2) {
+      smallArmy.splice(indexSmall, peopleKilled);
+      battleLog.push(
+        `A disaster happened! A disease struck the smaller army. ${peopleKilled} were killed. Smaller army has ${smallArmy.length} warriors left`,
+      );
+      diedOfDisaster += peopleKilled;
+    } else {
+      const isDead = bigArmyWarrior.attack(smallArmyWarrior);
+      if (isDead) {
+        smallArmy.splice(indexSmall, 1);
+        battleLog.push(
+          `A ${smallArmyWarrior.type} of the smaller army was killed in combat by a ${bigArmyWarrior.type} of the bigger army. Smaller army has ${smallArmy.length} warriors left`,
+        );
+        diedOfCombat += 1;
+      }
+    }
+    return diedOfCombat + diedOfDisaster;
+  };
+
   //main battle logic
   battle = (
     battleLog: string[],
@@ -71,61 +144,36 @@ export class AppService {
     indexSmall: number,
     peopleKilled: number,
   ): number => {
-    let diedOfDisaster = 0;
-    let diedOfCombat = 0;
+    let deadThisRound = 0;
     const smallArmyWarrior = smallArmy[indexSmall];
     const bigArmyWarrior = bigArmy[indexBig];
 
     const attackOrder = Math.random();
 
     if (attackOrder > 0.5) {
-      if (disaster === 1) {
-        bigArmy.splice(indexBig, peopleKilled);
-        battleLog.push(
-          `A disaster happened! An earthquake hit the bigger army. ${peopleKilled} were killed. Bigger army has ${bigArmy.length} warriors left`,
-        );
-        diedOfDisaster += peopleKilled;
-      } else if (disaster === 2) {
-        bigArmy.splice(indexBig, peopleKilled);
-        battleLog.push(
-          `A disaster happened! A disease struck the bigger army. ${peopleKilled} were killed. Bigger army has ${bigArmy.length} warriors left`,
-        );
-        diedOfDisaster += peopleKilled;
-      } else {
-        const isDead = smallArmyWarrior.attack(bigArmyWarrior);
-        if (isDead) {
-          bigArmy.splice(indexBig, 1);
-          diedOfCombat += 1;
-          battleLog.push(
-            `${bigArmyWarrior.type} of the bigger army was killed in combat by a ${smallArmyWarrior.type} of the smaller army. Bigger army has ${bigArmy.length} warriors left`,
-          );
-        }
-      }
+      const smallAttacker = this.smallArmyAttacker(
+        smallArmyWarrior,
+        bigArmyWarrior,
+        disaster,
+        bigArmy,
+        indexBig,
+        battleLog,
+        peopleKilled,
+      );
+      deadThisRound += smallAttacker;
     } else {
-      if (disaster === 1) {
-        smallArmy.splice(indexSmall, peopleKilled);
-        battleLog.push(
-          `A disaster happened! An earthquake hit the smaller army. ${peopleKilled} were killed. Smaller army has ${smallArmy.length} warriors left`,
-        );
-        diedOfDisaster += peopleKilled;
-      } else if (disaster === 2) {
-        smallArmy.splice(indexSmall, peopleKilled);
-        battleLog.push(
-          `A disaster happened! A disease struck the smaller army. ${peopleKilled} were killed. Smaller army has ${smallArmy.length} warriors left`,
-        );
-        diedOfDisaster += peopleKilled;
-      } else {
-        const isDead = bigArmyWarrior.attack(smallArmyWarrior);
-        if (isDead) {
-          smallArmy.splice(indexSmall, 1);
-          battleLog.push(
-            `A ${smallArmyWarrior.type} of the smaller army was killed in combat by a ${bigArmyWarrior.type} of the bigger army. Smaller army has ${smallArmy.length} warriors left`,
-          );
-          diedOfCombat += 1;
-        }
-      }
+      const bigAttacker = this.bigArmyAttacker(
+        smallArmyWarrior,
+        bigArmyWarrior,
+        disaster,
+        smallArmy,
+        indexSmall,
+        battleLog,
+        peopleKilled,
+      );
+      deadThisRound += bigAttacker;
     }
-    return diedOfCombat + diedOfDisaster;
+    return deadThisRound;
   };
 
   // main function with the general overview of the battle + logging
