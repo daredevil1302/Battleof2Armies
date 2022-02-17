@@ -40,7 +40,7 @@ export class AppService {
   }
   // function that generates a disaster every 5 rounds
   generateDisaster = (index: number): number => {
-    if (index % 7 === 0) {
+    if (index % 5 === 0) {
       const diseaseChance = Math.random();
       if (diseaseChance > DISASTER_CHANCE) {
         return 1;
@@ -65,12 +65,7 @@ export class AppService {
     const battleLog: string[] = [];
     let diedOfDisaster = 0;
     let diedOfCombat = 0;
-    console.log(bigArmy.length);
-    console.log(smallArmy.length);
-    bigArmy.slice(1, 5);
-    smallArmy.slice(3, 6);
-    console.log(bigArmy.length);
-    console.log(smallArmy.length);
+
     while (smallArmy.length !== 0 && bigArmy.length !== 0) {
       for (let indexBig = 0; indexBig < bigArmy.length; indexBig++) {
         const element1 = bigArmy[indexBig];
@@ -83,13 +78,13 @@ export class AppService {
           const element = smallArmy[indexSmall];
           if (attackOrder > 0.5) {
             if (disaster === 1) {
-              bigArmy.slice(indexBig, peopleKilled);
+              bigArmy.splice(indexBig, peopleKilled);
               battleLog.push(
                 `A disaster happened in round ${indexSmall}! An earthquake hit the bigger army. ${peopleKilled} were killed`,
               );
               diedOfDisaster += peopleKilled;
             } else if (disaster === 2) {
-              bigArmy.slice(indexBig, peopleKilled);
+              bigArmy.splice(indexBig, peopleKilled);
               battleLog.push(
                 `A disaster happened in round ${indexSmall}! A disease struck the bigger army. ${peopleKilled} were killed`,
               );
@@ -97,19 +92,19 @@ export class AppService {
             } else {
               const isDead = element.attack(element1);
               if (isDead) {
-                bigArmy.slice(indexBig, 1);
+                bigArmy.splice(indexBig, 1);
                 diedOfCombat += 1;
               }
             }
           } else {
             if (disaster === 1) {
-              smallArmy.slice(indexSmall, peopleKilled);
+              smallArmy.splice(indexSmall, peopleKilled);
               battleLog.push(
                 `A disaster happened in round ${indexSmall}! An earthquake hit the smaller army. ${peopleKilled} were killed`,
               );
               diedOfDisaster += peopleKilled;
             } else if (disaster === 2) {
-              smallArmy.slice(indexSmall, peopleKilled);
+              smallArmy.splice(indexSmall, peopleKilled);
               battleLog.push(
                 `A disaster happened in round ${indexSmall}! A disease struck the smaller army. ${peopleKilled} were killed`,
               );
@@ -117,18 +112,14 @@ export class AppService {
             } else {
               const isDead = element1.attack(element);
               if (isDead) {
-                smallArmy.slice(indexSmall, 1);
+                smallArmy.splice(indexSmall, 1);
                 diedOfCombat += 1;
               }
             }
           }
           if (indexSmall % 15 === 0) {
             battleLog.push(
-              `Battle status after ${indexSmall} attacks: 
-              -The bigger army has ${bigArmy.length} warriors left. 
-              -The smaller army has ${smallArmy.length} left. 
-              -${diedOfCombat} warriors died in single combat on both sides. 
-              -${diedOfDisaster} warriors died of disasters (earthquakes and diseases) on both sides`,
+              `Battle status after ${indexSmall} attacks: The bigger army has ${bigArmy.length} warriors left. The smaller army has ${smallArmy.length} left. ${diedOfCombat} warriors died in single combat on both sides. ${diedOfDisaster} warriors died of disasters (earthquakes and diseases) on both sides`,
             );
           }
           if (bigArmy.length === 0 || smallArmy.length === 0) {
