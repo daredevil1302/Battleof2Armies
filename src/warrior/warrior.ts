@@ -8,10 +8,12 @@ export class Warrior {
     this.armor = armor;
   }
   attack(enemy: Warrior) {
-    return enemy.decreaseHealth(this.power);
+    return enemy.decreaseHealth(this.power, enemy);
   }
-  decreaseHealth(power: number) {
-    const newHealth = this.health - power;
+  decreaseHealth(power: number, enemy: Warrior) {
+    const armorMultiplicator = 1 - enemy.armor / 200;
+    const newHealth = this.health - power * armorMultiplicator;
+    enemy.health = newHealth;
     return newHealth <= 0;
   }
 }

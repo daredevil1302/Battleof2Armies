@@ -1,10 +1,15 @@
+import { Warrior } from './warrior/warrior';
 import { BattleQuery } from './query-interface';
 import { Knight } from './warrior/knight';
 import { Thief } from './warrior/thief';
 import { Wizard } from './warrior/wizard';
 import { Injectable } from '@nestjs/common';
 import { Console } from 'console';
+import { stringify } from 'querystring';
 
+const WIZARD_CHANCE = 0.33;
+const THIEF_CHANCE = 0.66;
+const DISASTER_CHANCE = 0.5;
 @Injectable()
 export class AppService {
   constructor(
@@ -14,7 +19,7 @@ export class AppService {
   ) {}
 
   async getBattle(army1: number, army2: number): Promise<string> {
-    this.calculateBattle(army1, army2);
+    await this.calculateBattle(army1, army2);
     const chance = Math.random();
     let pickedWarrior = 0;
     if (chance > 0.85) {
@@ -27,66 +32,116 @@ export class AppService {
     }
   }
 
-  async calculateBattle(army1num: number, army2num: number): Promise<void> {
-    const army1array: Array<any> = [];
-    const army2array: Array<any> = [];
-
-    //range za raspodjelu vojnika
-
-    for (let index = 0; index < army1num; index++) {
+  async armyCalculator(armyLength: number) {
+    const army: Warrior[] = [];
+    for (let index = 0; index < armyLength; index++) {
       const chance = Math.random();
-      if (chance <= 0.33) {
+      if (chance <= WIZARD_CHANCE) {
         //konstata a ne bosanska hardkdirana vrijednost
-        army1array.push(this.wizard);
-      } else if (chance > 0.33 && chance <= 0.66) {
-        army1array.push(this.thief);
-      } else if (chance > 0.66) {
-        army1array.push(this.knight);
+        army.push(this.wizard);
+      } else if (chance > WIZARD_CHANCE && chance <= THIEF_CHANCE) {
+        army.push(this.thief);
+      } else if (chance > THIEF_CHANCE) {
+        army.push(this.knight);
       }
     }
-    for (let index = 0; index < army1array.length; index++) {
-      const warrior = new Knight();
+    return army;
+  }
+  generateDisease = (index: number): number => {
+    if (index % 5 === 0) {
+      const diseaseChance = Math.random();
+      if (diseaseChance > DISASTER_CHANCE) {
+        return 1;
+        //1 signifies an earthquake
+      } else {
+        return 2;
+        // signifies a disease
+      }
     }
+  };
+  async calculateBattle(army1num: number, army2num: number): Promise<string[]> {
+    const firstArmy = await this.armyCalculator(army1num);
+    const secondArmy = await this.armyCalculator(army2num);
+
     const smallArmy =
-      army1array.length > army2array.length ? army2array : army1array;
-    const bigArmy = null; //obrnuto
+      firstArmy.length > secondArmy.length ? secondArmy : firstArmy;
+    const bigArmy =
+      firstArmy.length > secondArmy.length ? firstArmy : secondArmy;
+    const battleLog: string[] = [];
 
-    //provjeriti vojnike
-    //logirati runde
-    //generator disease
-    while (true) {
-      for (let index = 0; index < bigArmy.length; index++) {
-        const element1 = bigArmy[index];
+    while (smallArmy.length !== 0 || bigArmy.length !== 0) {
+      for (let indexBig = 0; indexBig < bigArmy.length; indexBig++) {
+        const element1 = bigArmy[indexBig];
 
-        for (let index = 0; index < smallArmy.length; index++) {
-          const element = army2array[index];
-
-          const isDead = element.attack(element1);
-          if (isDead) {
-            army2array.slice(index, 1);
+        for (let indexSmall = 0; indexSmall < smallArmy.length; indexSmall++) {
+          const peopleKilled = Math.floor(Math.random() * (1 - 5 + 1)) + 5;
+          const disaster = this.generateDisease(indexSmall);
+          let diedOfDisaster = 0;
+          let diedOfCombat = 0;
+          const attackOrder = Math.random();
+          const element = smallArmy[indexSmall];
+          if (attackOrder > 0.5) {
+            if (disaster === 1) {
+              bigArmy.slice(indexBig, peopleKilled);
+              battleLog.push(
+                `A disaster happened in round ${indexSmall}! An earthquake hit the bigger army. ${peopleKilled} were killed`,
+              );
+              diedOfDisaster += peopleKilled;
+            } else if (disaster === 2) {
+              bigArmy.slice(indexBig, peopleKilled);
+              battleLog.push(
+                `A disaster happened in round ${indexSmall}! A disease struck the bigger army. ${peopleKilled} were killed`,
+              );
+              diedOfDisaster += peopleKilled;
+            } else {
+              const isDead = element.attack(element1);
+              if (isDead) {
+                bigArmy.slice(indexBig, 1);
+                diedOfCombat += 1;
+              }
+            }
+          } else {
+            if (disaster === 1) {
+              smallArmy.slice(indexSmall, peopleKilled);
+              battleLog.push(
+                `A disaster happened in round ${indexSmall}! An earthquake hit the smaller army. ${peopleKilled} were killed`,
+              );
+              diedOfDisaster += peopleKilled;
+            } else if (disaster === 2) {
+              smallArmy.slice(indexSmall, peopleKilled);
+              battleLog.push(
+                `A disaster happened in round ${indexSmall}! A disease struck the smaller army. ${peopleKilled} were killed`,
+              );
+              diedOfDisaster += peopleKilled;
+            } else {
+              const isDead = element1.attack(element);
+              if (isDead) {
+                smallArmy.slice(indexSmall, 1);
+                diedOfCombat += 1;
+              }
+            }
           }
-          //implementirati bitku
+          if (indexSmall % 5 === 0) {
+            battleLog.push(
+              `Battle status after ${indexSmall} attacks: 
+              -The bigger army has ${bigArmy.length} warriors left. 
+              -The smaller army has ${smallArmy.length} left. 
+              -${diedOfCombat} warriors died in single combat on both sides. 
+              -${diedOfDisaster} warriors died of disasters (earthquakes and diseases) on both sides`,
+            );
+          }
+          if (bigArmy.length === 0 || smallArmy.length === 0) {
+            battleLog.push(
+              `The battle has ended! ${
+                bigArmy.length === 0
+                  ? `The smaller army won with ${smallArmy.length} warriors left`
+                  : `The bigger army won with ${bigArmy.length} warriors left`
+              } `,
+            );
+          }
         }
       }
     }
-
-    for (let index = 0; index < army2num; index++) {
-      const chance = Math.random();
-      if (chance <= 0.33) {
-        army2array.push(this.wizard);
-      } else if (chance > 0.33 && chance <= 0.66) {
-        army2array.push(this.thief);
-      } else if (chance > 0.66) {
-        army2array.push(this.knight);
-      }
-    }
-    console.log(army1array, army2array);
-  }
-  async warriorAttack(
-    attackerPower: number,
-    defenderArmor: number,
-  ): Promise<number> {
-    const armorMultiplicator = 1 - defenderArmor / 200;
-    return attackerPower * armorMultiplicator;
+    return battleLog;
   }
 }

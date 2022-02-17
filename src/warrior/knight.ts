@@ -1,11 +1,21 @@
-export class Knight {
-  health: number;
-  armor: number;
-  power: number;
+import { Warrior } from './warrior';
 
+const HEALTH_RANGE = [140, 160];
+const POWER_RANGE = [20, 40];
+const ARMOR_RANGE = [60, 80];
+
+const health =
+  Math.floor(Math.random() * (HEALTH_RANGE[0] - HEALTH_RANGE[1] + 1)) +
+  HEALTH_RANGE[1];
+const power =
+  Math.floor(Math.random() * (POWER_RANGE[0] - POWER_RANGE[1] + 1)) +
+  POWER_RANGE[1];
+const armor =
+  Math.floor(Math.random() * (ARMOR_RANGE[0] - ARMOR_RANGE[1] + 1)) +
+  ARMOR_RANGE[1];
+
+export class Knight extends Warrior {
   constructor() {
-    this.health = 200;
-    this.armor = 80;
-    this.power = 40;
+    super(health, power, armor);
   }
 }
