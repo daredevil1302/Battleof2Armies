@@ -1,15 +1,15 @@
 import { Warrior } from './warrior/warrior';
-import { BattleQuery } from './query-interface';
+
 import { Knight } from './warrior/knight';
 import { Thief } from './warrior/thief';
 import { Wizard } from './warrior/wizard';
 import { Injectable } from '@nestjs/common';
-import { Console } from 'console';
-import { stringify } from 'querystring';
 
+//breakpoints for randomness
 const WIZARD_CHANCE = 0.33;
 const THIEF_CHANCE = 0.66;
 const DISASTER_CHANCE = 0.5;
+
 @Injectable()
 export class AppService {
   constructor(
@@ -18,26 +18,18 @@ export class AppService {
     private knight: Knight,
   ) {}
 
-  async getBattle(army1: number, army2: number): Promise<string> {
-    await this.calculateBattle(army1, army2);
-    const chance = Math.random();
-    let pickedWarrior = 0;
-    if (chance > 0.85) {
-      pickedWarrior = Math.round(Math.random());
-      return `Army number 1: ${army1} versus Army number 2: ${army2} Affected warrior from the ${
-        pickedWarrior === 0 ? 'first army' : 'second army'
-      }`;
-    } else {
-      return 'Regular battle';
-    }
+  // function that returns the battle report
+  async getBattle(army1: number, army2: number): Promise<string[]> {
+    const battleReport = await this.calculateBattle(army1, army2);
+    return battleReport;
   }
 
+  // function that fills both armies with appropriate number of warrior classes
   async armyCalculator(armyLength: number) {
     const army: Warrior[] = [];
     for (let index = 0; index < armyLength; index++) {
       const chance = Math.random();
       if (chance <= WIZARD_CHANCE) {
-        //konstata a ne bosanska hardkdirana vrijednost
         army.push(this.wizard);
       } else if (chance > WIZARD_CHANCE && chance <= THIEF_CHANCE) {
         army.push(this.thief);
@@ -47,7 +39,8 @@ export class AppService {
     }
     return army;
   }
-  generateDisease = (index: number): number => {
+  // function that generates a disaster every 5 rounds
+  generateDisaster = (index: number): number => {
     if (index % 5 === 0) {
       const diseaseChance = Math.random();
       if (diseaseChance > DISASTER_CHANCE) {
@@ -55,10 +48,12 @@ export class AppService {
         //1 signifies an earthquake
       } else {
         return 2;
-        // signifies a disease
+        //2 signifies a disease
       }
     }
   };
+
+  // main function with all the battle logic
   async calculateBattle(army1num: number, army2num: number): Promise<string[]> {
     const firstArmy = await this.armyCalculator(army1num);
     const secondArmy = await this.armyCalculator(army2num);
@@ -75,7 +70,7 @@ export class AppService {
 
         for (let indexSmall = 0; indexSmall < smallArmy.length; indexSmall++) {
           const peopleKilled = Math.floor(Math.random() * (1 - 5 + 1)) + 5;
-          const disaster = this.generateDisease(indexSmall);
+          const disaster = this.generateDisaster(indexSmall);
           let diedOfDisaster = 0;
           let diedOfCombat = 0;
           const attackOrder = Math.random();

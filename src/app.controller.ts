@@ -10,7 +10,7 @@ export class AppController {
   constructor(private readonly appService: AppService) {}
 
   @Get('/battle')
-  async getBattle(@Query() battleQuery: BattleQuery): Promise<string> {
+  async getBattle(@Query() battleQuery: BattleQuery): Promise<string[]> {
     const { army1, army2 } = battleQuery;
     return this.appService.getBattle(army1, army2);
   }
